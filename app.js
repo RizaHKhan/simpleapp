@@ -13,8 +13,6 @@ mongodb.connect(connectionString, {useNewUrlParser:true, useUnifiedTopology: tru
     db = client.db()
 })
 
-
-
 //automactically attach submitted form data to the body object. 
 app.use(express.urlencoded({extended: false}))
 //automactically attach submitted form data to the body object. 
@@ -51,8 +49,8 @@ app.get('', (req, res) => {
                 <li class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
                 <span class="item-text">${y.task}</span>
                 <div>
-                  <button class="edit-me btn btn-secondary btn-sm mr-1">Edit</button>
-                  <button class="delete-me btn btn-danger btn-sm">Delete</button>
+                  <button data-id="${y._id}" class="edit-me btn btn-secondary btn-sm mr-1">Edit</button>
+                  <button data-id="${y._id}" class="delete-me btn btn-danger btn-sm">Delete</button>
                 </div>
               </li>
                 `
@@ -66,7 +64,7 @@ app.get('', (req, res) => {
         </body>
         </html>`)
     })
-
+// We used a CDN for Axios because we wanted to use it within the browers, not the server side. If we had to use it in the server, we would install the module through npm and require it in the app.js file.
     
 })
 
@@ -74,7 +72,7 @@ app.post('/create-item', (req, res) => {
 
     if(req.body.item == '') {
         console.log('Enter a task')
-        res.render('/')
+       res.redirect('/')
     } else {
     
     db.collection('task_list').insertOne({task: req.body.item}, function() {
@@ -84,9 +82,16 @@ app.post('/create-item', (req, res) => {
 })
 
 app.post('/update-item', (req, res)=> {
-    console.log(req.body.task)
-    res.send('Success')
+
+    db.collection('task_list').findOneAndUpdate({_id: new mongodb.ObjectId(req.body.id)}, {$set: {task: req.body.task}}, function() {
+        res.send('Success')
+    })
 })
 
+app.post('/delete-item', (req, res) => {
+    db.collection('task_list').deleteOne({_id: new mongodb.ObjectID(req.body.id)}, function() {
+        res.send('Success')
+    })
+})
 
 app.listen(3000)
